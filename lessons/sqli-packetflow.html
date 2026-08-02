@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>パケットフロー · VECTOR</title>
+<style>
+  .topnav { font-family: ui-monospace, monospace; font-size: 13px; padding: 12px 20px;
+    border-bottom: 1px solid #1b2540; display: flex; gap: 14px; align-items: center; background:#080b14; }
+  .topnav a { color: #00e5ff; text-decoration: none; }
+  .topnav a:hover { text-shadow: 0 0 10px #00e5ff; }
+  .topnav .sep { color:#2b3a5a; }
+  .topnav .tag { color:#6b7a93; }
+</style>
+</head>
+<body>
+<nav class="topnav"><a href="../index.html">◂ VECTOR</a><span class="sep">/</span><span class="tag">パケットフロー</span></nav>
+<style>
+  :root {
+    --bg: #06080e; --panel: #0b1020; --line: #1b2540;
+    --ink: #d3deec; --dim: #6b7a93;
+    --cyan: #00e5ff; --magenta: #ff2bd6; --green: #39ff14; --amber: #ffb000; --purple: #a45cff;
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans JP", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: radial-gradient(1100px 500px at 50% -10%, #0d1530 0%, transparent 60%), var(--bg);
+    color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 30px 18px 54px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); display: flex; align-items: center; gap: 8px; }
+  .kicker .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: blink 1.4s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  h1 { font-family: var(--mono); font-weight: 700; font-size: clamp(22px, 3.6vw, 32px); margin: 10px 0 6px; color: #eaf3ff; text-wrap: balance; }
+  h1 .hl { color: var(--magenta); }
+  .sub { color: var(--dim); font-size: 14.5px; max-width: 64ch; margin: 0 0 20px; }
+
+  .scene { position: relative; background: linear-gradient(180deg, #0a0f1e, #0b1120); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 70px -34px #000, inset 0 1px 0 rgba(255,255,255,.03); }
+  canvas { display: block; width: 100%; height: auto; }
+
+  .caption { position: absolute; left: 16px; bottom: 12px; font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
+  .caption b { color: var(--cyan); font-weight: 400; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .swatch { width: 11px; height: 11px; border-radius: 3px; }
+
+  .controls { display: flex; gap: 10px; margin-top: 18px; align-items: center; }
+  button { font-family: var(--mono); font-size: 13.5px; cursor: pointer; border-radius: 9px; padding: 9px 16px; border: 1px solid var(--line); background: #0c1326; color: var(--ink); transition: all .2s; }
+  button:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 16px -6px var(--cyan); }
+  button:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+  .step { font-family: var(--mono); font-size: 13px; color: var(--amber); margin-left: auto; }
+  .foot { margin-top: 22px; font-size: 12px; color: var(--dim); text-align: center; font-family: var(--mono); }
+</style>
+
+<div class="wrap">
+  <div class="kicker"><span class="dot"></span>SCS · packet flow</div>
+  <h1>攻撃が<span class="hl">飛んでいく</span>のを見る</h1>
+  <p class="sub">攻撃者 → Web サーバ → データベース の間を、リクエスト・クエリ・レスポンスのパケットが実際に流れる様子。題材は SQLi 認証バイパス。ノードはアイソメトリック(斜め投影)で立体っぽく。</p>
+
+  <div class="scene">
+    <canvas id="c" aria-label="攻撃者からWebサーバ、データベースへパケットが流れるアニメーション"></canvas>
+    <div class="caption" id="cap"><b>›</b> <span id="capt">initializing…</span></div>
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--magenta)"></span>攻撃リクエスト / 悪性クエリ</span>
+    <span><span class="swatch" style="background:var(--green)"></span>DB からの応答(admin 行)</span>
+    <span><span class="swatch" style="background:var(--cyan)"></span>発行された token</span>
+  </div>
+
+  <div class="controls">
+    <button id="toggle">⏸ 停止</button>
+    <button id="speed">速度 ×1</button>
+    <span class="step" id="phase"></span>
+  </div>
+
+  <div class="foot">2D Canvas のみ・外部ライブラリなし — パケットの流れは SQLi 認証バイパスの実際の順序に対応</div>
+</div>
+
+<script>
+  const cv = document.getElementById("c");
+  const ctx = cv.getContext("2d");
+  const capt = document.getElementById("capt");
+  const phaseEl = document.getElementById("phase");
+  let DPR = Math.min(devicePixelRatio || 1, 2);
+  let W, H;
+
+  const LOGW = 940, LOGH = 470;
+  function resize() {
+    const cssW = cv.clientWidth || cv.parentElement.clientWidth;
+    const cssH = cssW * (LOGH / LOGW);
+    cv.style.height = cssH + "px";
+    cv.width = cssW * DPR; cv.height = cssH * DPR;
+    W = cv.width; H = cv.height;
+  }
+
+  // nodes in fractional coords -> pixels
+  const N = {
+    attacker: { fx: 0.15, fy: 0.60, glow: 0, label: "ATTACKER", kind: "term" },
+    server:   { fx: 0.50, fy: 0.40, glow: 0, label: "juice-shop :3000", kind: "server" },
+    db:       { fx: 0.85, fy: 0.62, glow: 0, label: "users DB", kind: "db" },
+  };
+  const px = (n) => ({ x: n.fx * W, y: n.fy * H });
+  const S = () => (W / LOGW); // scale factor
+
+  // ---- isometric-ish node drawing ----
+  function neon(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur; }
+  function noGlow() { ctx.shadowBlur = 0; }
+
+  function drawServer(x, y, s, glow) {
+    const w = 66 * s, h = 46 * s, d = 26 * s; // width, height, depth
+    const top = "#16294a", front = "#0e1b33", side = "#0a1428";
+    const edge = `rgba(0,229,255,${0.5 + glow * 0.5})`;
+    // isometric cuboid: front + top + right faces
+    ctx.save();
+    ctx.translate(x, y);
+    neon("#00e5ff", 12 + glow * 26);
+    // front
+    ctx.fillStyle = front; ctx.strokeStyle = edge; ctx.lineWidth = 1.4*s;
+    ctx.fillRect(-w/2, -h/2, w, h); ctx.strokeRect(-w/2, -h/2, w, h);
+    // top
+    ctx.beginPath(); ctx.moveTo(-w/2, -h/2); ctx.lineTo(-w/2 + d, -h/2 - d);
+    ctx.lineTo(w/2 + d, -h/2 - d); ctx.lineTo(w/2, -h/2); ctx.closePath();
+    ctx.fillStyle = top; ctx.fill(); ctx.stroke();
+    // side
+    ctx.beginPath(); ctx.moveTo(w/2, -h/2); ctx.lineTo(w/2 + d, -h/2 - d);
+    ctx.lineTo(w/2 + d, h/2 - d); ctx.lineTo(w/2, h/2); ctx.closePath();
+    ctx.fillStyle = side; ctx.fill(); ctx.stroke();
+    // rack slots
+    ctx.strokeStyle = `rgba(0,229,255,${0.25 + glow*0.5})`; ctx.lineWidth = 1*s;
+    for (let i = 1; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(-w/2+6*s, -h/2 + i*h/4); ctx.lineTo(w/2-6*s, -h/2 + i*h/4); ctx.stroke(); }
+    ctx.fillStyle = glow > 0.3 ? "#39ff14" : "#0f6"; ctx.fillRect(w/2-10*s, -h/2+5*s, 4*s, 4*s);
+    ctx.restore(); noGlow();
+  }
+
+  function drawDB(x, y, s, glow) {
+    const w = 54 * s, h = 54 * s, ry = 12 * s;
+    ctx.save(); ctx.translate(x, y);
+    neon("#ff2bd6", 12 + glow * 26);
+    const body = "#241033", strokeC = `rgba(255,43,214,${0.55 + glow*0.45})`;
+    ctx.strokeStyle = strokeC; ctx.lineWidth = 1.5*s; ctx.fillStyle = body;
+    // body
+    ctx.beginPath();
+    ctx.moveTo(-w/2, -h/2); ctx.lineTo(-w/2, h/2);
+    ctx.ellipse(0, h/2, w/2, ry, 0, Math.PI, 0, true);
+    ctx.lineTo(w/2, -h/2); ctx.stroke();
+    ctx.beginPath(); ctx.rect(-w/2, -h/2, w, h); ctx.fill();
+    // rings
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath(); ctx.ellipse(0, -h/2 + i*h/2.2 + ry, w/2, ry, 0, 0, Math.PI*2);
+      ctx.fillStyle = i === 0 ? "#2e1444" : body; ctx.fill(); ctx.stroke();
+    }
+    ctx.restore(); noGlow();
+  }
+
+  function drawTerm(x, y, s, glow) {
+    const w = 74 * s, h = 48 * s;
+    ctx.save(); ctx.translate(x, y);
+    neon("#00e5ff", 10 + glow * 30);
+    ctx.strokeStyle = `rgba(0,229,255,${0.55 + glow*0.45})`; ctx.lineWidth = 1.5*s;
+    ctx.fillStyle = glow > 0.4 ? "#20112a" : "#081426";
+    ctx.beginPath(); roundRect(-w/2, -h/2, w, h, 6*s); ctx.fill(); ctx.stroke();
+    noGlow();
+    ctx.fillStyle = glow > 0.4 ? "#ff2bd6" : "#39ff14";
+    ctx.font = `${16*s}px ${getMono()}`;
+    ctx.fillText(glow > 0.4 ? "# root" : "> _", -w/2 + 10*s, 6*s);
+    // stand
+    ctx.strokeStyle = "rgba(0,229,255,.3)"; ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(0, h/2 + 10*s); ctx.moveTo(-14*s, h/2+10*s); ctx.lineTo(14*s, h/2+10*s); ctx.stroke();
+    ctx.restore();
+  }
+  function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function getMono() { return "ui-monospace, monospace"; }
+
+  function nodeLabel(x, y, s, text, color) {
+    ctx.font = `${12*s}px ${getMono()}`; ctx.textAlign = "center";
+    ctx.fillStyle = color; ctx.fillText(text, x, y + 56*s);
+    ctx.textAlign = "left";
+  }
+
+  function link(a, b) {
+    const A = px(a), B = px(b);
+    ctx.strokeStyle = "rgba(120,150,200,.18)"; ctx.lineWidth = 2 * S();
+    ctx.setLineDash([4*S(), 6*S()]); ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // ---- packet sequence (the SQLi bypass, in order) ----
+  const SEQ = [
+    { from: "attacker", to: "server", color: "#ff2bd6", label: "POST /login  admin' OR 1=1--", cap: "攻撃者が悪性ペイロードを送信", phase: "1 · REQUEST" },
+    { from: "server", to: "db", color: "#ff2bd6", label: "SELECT … WHERE …' OR 1=1--", cap: "サーバが文字列連結でクエリを組み立て DB へ", phase: "2 · QUERY" },
+    { from: "db", to: "server", color: "#39ff14", label: "row #1 → admin ✓", cap: "WHERE が常に真 → 先頭の admin 行を返す", phase: "3 · RESULT" },
+    { from: "server", to: "attacker", color: "#00e5ff", label: "JWT · role=admin 🔓", cap: "admin 権限の token を発行 → 認証バイパス成立", phase: "4 · TOKEN" },
+  ];
+
+  let si = 0, pt = 0, paused = false, speedMul = 1, holdT = 0;
+  const SPEEDS = [1, 2, 0.5];
+  let spdIdx = 0;
+
+  function ease(t) { return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2; }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+
+    // ambient grid
+    ctx.strokeStyle = "rgba(0,229,255,0.04)"; ctx.lineWidth = 1;
+    for (let gx = 0; gx < W; gx += 44*S()) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (let gy = 0; gy < H; gy += 44*S()) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+    link(N.attacker, N.server); link(N.server, N.db);
+
+    const seg = SEQ[si];
+    const A = px(N[seg.from]), B = px(N[seg.to]);
+
+    if (!paused && holdT <= 0) pt += 0.011 * speedMul;
+    if (holdT > 0 && !paused) holdT -= 0.016 * speedMul;
+
+    // active link highlight
+    const e = ease(Math.min(pt, 1));
+    ctx.strokeStyle = seg.color + "55"; ctx.lineWidth = 3 * S();
+    ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(A.x + (B.x-A.x)*e, A.y + (B.y-A.y)*e); ctx.stroke();
+
+    // packet
+    if (pt <= 1) {
+      const x = A.x + (B.x - A.x) * e, y = A.y + (B.y - A.y) * e;
+      // trailing pulses
+      for (let k = 0; k < 5; k++) {
+        const tt = Math.max(0, e - k*0.05); const tx = A.x+(B.x-A.x)*tt, ty=A.y+(B.y-A.y)*tt;
+        ctx.globalAlpha = (1 - k/5) * 0.5; ctx.fillStyle = seg.color;
+        neon(seg.color, 14); ctx.beginPath(); ctx.arc(tx, ty, (7 - k) * S(), 0, 7); ctx.fill(); noGlow();
+      }
+      ctx.globalAlpha = 1;
+      neon(seg.color, 22); ctx.fillStyle = "#fff";
+      ctx.beginPath(); ctx.arc(x, y, 5*S(), 0, 7); ctx.fill(); noGlow();
+      // label chip riding the packet
+      ctx.font = `${12*S()}px ${getMono()}`;
+      const tw = ctx.measureText(seg.label).width + 16*S();
+      const lx = Math.min(Math.max(x - tw/2, 6*S()), W - tw - 6*S()), ly = y - 26*S();
+      ctx.fillStyle = "rgba(6,8,14,.85)"; ctx.strokeStyle = seg.color; ctx.lineWidth = 1*S();
+      roundRect(lx, ly, tw, 20*S(), 5*S()); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = seg.color; ctx.fillText(seg.label, lx + 8*S(), ly + 14*S());
+    }
+
+    // arrival -> bump target glow, advance
+    if (pt >= 1 && holdT <= 0) {
+      N[seg.to].glow = 1;
+      holdT = 0.9; // pause on arrival
+      if (holdT > 0) { /* schedule next after hold via holdT countdown */ }
+      pt = 1.0001;
+    }
+    if (pt > 1 && holdT <= 0 && !paused) {
+      si = (si + 1) % SEQ.length; pt = 0;
+    }
+
+    // decay glows
+    for (const k in N) N[k].glow *= 0.94;
+
+    // draw nodes
+    const a = px(N.attacker), sv = px(N.server), db = px(N.db), s = S();
+    drawTerm(a.x, a.y, s, N.attacker.glow);
+    drawServer(sv.x, sv.y, s, N.server.glow);
+    drawDB(db.x, db.y, s, N.db.glow);
+    nodeLabel(a.x, a.y, s, "ATTACKER", "#00e5ff");
+    nodeLabel(sv.x, sv.y - 20*s, s, "juice-shop :3000", "#cbe9ff");
+    nodeLabel(db.x, db.y, s, "users DB", "#ff9be8");
+
+    capt.textContent = seg.cap;
+    phaseEl.textContent = "PHASE " + seg.phase;
+
+    requestAnimationFrame(frame);
+  }
+
+  document.getElementById("toggle").onclick = (e) => { paused = !paused; e.target.textContent = paused ? "▶ 再生" : "⏸ 停止"; };
+  document.getElementById("speed").onclick = (e) => { spdIdx = (spdIdx+1)%SPEEDS.length; speedMul = SPEEDS[spdIdx]; e.target.textContent = "速度 ×" + speedMul; };
+
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  new ResizeObserver(resize).observe(cv.parentElement);
+  resize();
+  if (reduce) { paused = true; document.getElementById("toggle").textContent = "▶ 再生"; }
+  requestAnimationFrame(frame);
+</script>
+
+</body>
+</html>
