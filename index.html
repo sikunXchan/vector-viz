@@ -109,6 +109,16 @@
       </div>
     </a>
 
+    <a class="card" href="lessons/buffer-overflow.html">
+      <div class="thumb"><canvas data-viz="stack"></canvas></div>
+      <div class="body">
+        <div class="tags"><span class="chip inj">memory</span><span class="chip lvl">★★★</span></div>
+        <h3>バッファオーバーフロー</h3>
+        <p>境界チェック無しのコピーが、スタックの戻り先アドレスを上書きして制御を奪うまでをメモリ図で。</p>
+        <div class="go">▸ スタックを見る</div>
+      </div>
+    </a>
+
     <div class="card soon"><div class="thumb"><span>XSS — coming soon</span></div>
       <div class="body"><div class="tags"><span class="chip inj">injection</span></div><h3>反射型 XSS</h3><p>入力がスクリプトとして実行されるまでの流れ。</p></div>
     </div>
@@ -158,6 +168,21 @@
         ctx.fillStyle = "rgba(107,122,147,.6)"; ctx.fillText("WHERE email='", 14, 54);
         ctx.fillStyle = "#ff2bd6"; ctx.fillText("admin' OR 1=1--", 92, 54);
         ctx.fillStyle = p > .5 ? "rgba(57,255,20,.9)" : "rgba(57,255,20,.2)"; ctx.fillText("→ TRUE", 14, 78);
+      } else if (kind === "stack") {
+        // three stacked slots (ret / rbp / buf); bytes overflow up and corrupt "ret"
+        const slots = ["return addr", "saved rbp", "buf[8]"];
+        const p = (t % 140) / 140, reach = Math.floor(p * 3); // 0..2 how far overflow climbed
+        for (let s = 0; s < 3; s++) {
+          const y = 20 + s * 30, corrupt = (s === 0 && reach >= 2), hot = (2 - s) <= reach;
+          ctx.strokeStyle = corrupt ? "#ff466e" : (hot ? "rgba(53,224,255,.6)" : "rgba(120,150,200,.2)");
+          ctx.fillStyle = corrupt ? "rgba(255,70,110,.14)" : (hot ? "rgba(53,224,255,.08)" : "transparent");
+          ctx.lineWidth = 1; ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(14, y, W - 28, 22, 4); else ctx.rect(14, y, W - 28, 22);
+          ctx.fill(); ctx.stroke();
+          ctx.font = "9px ui-monospace, monospace";
+          ctx.fillStyle = corrupt ? "#ff466e" : (hot ? "#35e0ff" : "#4a5a78");
+          ctx.fillText(corrupt ? "0x41414141 ✗" : slots[s], 22, y + 15);
+        }
       } else {
         // packet dots moving between 3 nodes
         const ys = H / 2, xs = [W*0.18, W*0.5, W*0.82];
