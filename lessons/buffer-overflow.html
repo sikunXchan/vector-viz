@@ -25,118 +25,51 @@
   * { box-sizing: border-box; }
   body { margin:0; background: radial-gradient(1100px 560px at 50% -12%, #0e1730 0%, transparent 62%), var(--bg);
     color: var(--ink); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 940px; margin: 0 auto; padding: 30px 20px 60px; }
-
-  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--cyan); display:flex; align-items:center; gap:9px; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 30px 20px 60px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing:.24em; text-transform:uppercase; color: var(--cyan); display:flex; align-items:center; gap:9px; }
   .kicker .dot { width:8px; height:8px; border-radius:50%; background: var(--green); box-shadow:0 0 12px var(--green); animation: blink 1.5s steps(2) infinite; }
   @keyframes blink { 50% { opacity:.2; } }
-  h1 { font-family: var(--mono); font-weight: 700; font-size: clamp(23px, 3.6vw, 33px); margin: 12px 0 6px; color:#eef4fc; letter-spacing:-.01em; text-wrap: balance; }
+  h1 { font-family: var(--mono); font-weight:700; font-size: clamp(23px,3.6vw,33px); margin:12px 0 6px; color:#eef4fc; text-wrap:balance; }
   h1 .hl { color: var(--red); }
-  .sub { color: var(--dim); font-size: 15px; max-width: 64ch; margin: 0; }
+  .sub { color: var(--dim); font-size:15px; max-width:60ch; margin:0; }
 
-  .rail { display:flex; gap:6px; margin: 22px 0 22px; }
+  .rail { display:flex; gap:6px; margin:20px 0; }
   .rail .seg { flex:1; height:3px; border-radius:2px; background: var(--line); }
   .rail .seg.done { background: var(--cyan); }
   .rail .seg.active { background: linear-gradient(90deg, var(--cyan), var(--red)); }
 
-  .stage { display:grid; grid-template-columns: 1fr; gap: 16px; }
-  @media (min-width: 760px) { .stage { grid-template-columns: 1.05fr .95fr; align-items:start; } }
+  .scene { position:relative; background: linear-gradient(180deg, var(--panel), var(--panel2)); border:1px solid var(--line); border-radius:15px; overflow:hidden; box-shadow: 0 24px 70px -34px #000, inset 0 1px 0 rgba(255,255,255,.03); }
+  canvas { display:block; width:100%; height:auto; }
 
-  .panel { background: linear-gradient(180deg, var(--panel), var(--panel2)); border:1px solid var(--line); border-radius: 13px; padding: 16px; }
-  .plabel { font-family: var(--mono); font-size: 11px; letter-spacing:.2em; text-transform:uppercase; color: var(--dim); margin-bottom: 12px; }
+  .narr { margin-top:22px; min-height:78px; }
+  .narr .no { font-family: var(--mono); font-size:12px; color: var(--purple); letter-spacing:.16em; text-transform:uppercase; }
+  .narr h2 { font-size:20px; margin:6px 0 8px; color:#eef4fc; text-wrap:balance; }
+  .narr p { margin:0; color:#b4c2d6; font-size:15px; max-width:66ch; }
 
-  /* code */
-  .code { font-family: var(--mono); font-size: 13.5px; line-height: 1.95; white-space: pre; overflow-x:auto; }
-  .code .ln { display:block; padding: 0 8px; border-left: 2px solid transparent; border-radius: 3px; }
-  .code .ln.on { background: rgba(53,224,255,.10); border-left-color: var(--cyan); }
-  .code .ln.on.danger { background: rgba(255,70,110,.12); border-left-color: var(--red); }
-  .code .kw { color: var(--cyan); } .code .fn { color: #c9d6e8; } .code .cmt { color: #4a5a78; } .code .str { color: var(--green); } .code .warn { color: var(--red); }
-
-  /* control flow chip */
-  .flow { margin-top: 14px; font-family: var(--mono); font-size: 13px; display:flex; align-items:center; gap:9px; padding:9px 12px; border-radius:9px; border:1px solid var(--line); color: var(--dim); }
-  .flow b { color: var(--ink); font-weight:400; }
-  .flow.ok { color: var(--cyan); border-color: rgba(53,224,255,.35); background: rgba(53,224,255,.06); }
-  .flow.crash { color: var(--red); border-color: rgba(255,70,110,.4); background: rgba(255,70,110,.07); }
-  .flow.pwn { color: var(--green); border-color: rgba(86,255,166,.4); background: rgba(86,255,166,.07); }
-  .flow.guard { color: var(--amber); border-color: rgba(255,194,75,.4); background: rgba(255,194,75,.07); }
-
-  /* input strip */
-  .inputrow { font-family: var(--mono); font-size: 13px; margin-bottom: 14px; }
-  .inputrow .lbl { color: var(--dim); }
-  .bytes { display:flex; flex-wrap: wrap; gap: 3px; margin-top: 6px; }
-  .byte { width: 22px; height: 22px; display:grid; place-items:center; font-family: var(--mono); font-size: 10.5px; border-radius: 4px; background:#0a1120; border:1px solid var(--line); color: var(--dim); }
-  .byte.fill { color:#07101e; background: var(--cyan); border-color: var(--cyan); }
-  .byte.pad { color:#07101e; background: #4a5a78; border-color:#4a5a78; }
-  .byte.addr { color:#07101e; background: var(--green); border-color: var(--green); font-weight:700; }
-
-  /* stack */
-  .stack { display:flex; flex-direction: column; gap: 8px; }
-  .addrcol { font-family: var(--mono); font-size: 10px; color: #3f4d6b; }
-  .slot { position: relative; border:1px solid var(--line); border-radius: 9px; padding: 10px 12px; background:#0a1120; transition: border-color .35s, background .35s, box-shadow .35s; }
-  .slot .name { font-family: var(--mono); font-size: 10.5px; letter-spacing:.1em; text-transform: uppercase; color: var(--dim); }
-  .slot .val { font-family: var(--mono); font-size: 14px; margin-top: 3px; color: var(--ink); word-break: break-all; transition: color .35s; }
-  .slot.buf { border-left: 3px solid var(--cyan); }
-  .slot.written { box-shadow: inset 0 0 0 1px rgba(53,224,255,.3); }
-  .slot.written .val { color: var(--cyan); }
-  .slot.overwrite { border-color: var(--red); background: rgba(255,70,110,.08); box-shadow: 0 0 22px -8px var(--red); }
-  .slot.overwrite .val { color: var(--red); font-weight: 700; }
-  .slot.hijack { border-color: var(--green); background: rgba(86,255,166,.08); box-shadow: 0 0 22px -8px var(--green); }
-  .slot.hijack .val { color: var(--green); font-weight: 700; }
-  .slot.canary { border-color: var(--amber); }
-  .slot.canary .val { color: var(--amber); }
-  .slot.canary.overwrite { border-color: var(--red); }
-  .slot .tag { position:absolute; right:10px; top:9px; font-family: var(--mono); font-size:10px; padding:2px 6px; border-radius:5px; }
-  .tag-ret { background: rgba(255,194,75,.14); color: var(--amber); border:1px solid rgba(255,194,75,.4); }
-
-  .narr { margin-top: 22px; min-height: 92px; }
-  .narr .no { font-family: var(--mono); font-size: 12px; color: var(--purple); letter-spacing:.16em; text-transform: uppercase; }
-  .narr h2 { font-size: 19px; margin: 6px 0 8px; color:#eef4fc; text-wrap: balance; }
-  .narr p { margin:0; color:#b4c2d6; font-size: 15px; max-width: 68ch; }
-  .narr code { font-family: var(--mono); background:#0a1120; border:1px solid var(--line); padding:1px 6px; border-radius:5px; color: var(--amber); font-size:13px; }
-
-  .controls { display:flex; gap: 11px; margin-top: 24px; align-items:center; }
-  button { font-family: var(--mono); font-size: 14px; cursor:pointer; border-radius:9px; padding:10px 18px; border:1px solid var(--line); background:#0c1326; color: var(--ink); transition: all .18s; }
-  button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 16px -6px var(--cyan); }
+  .controls { display:flex; gap:11px; margin-top:22px; align-items:center; }
+  button { font-family: var(--mono); font-size:14px; cursor:pointer; border-radius:9px; padding:10px 18px; border:1px solid var(--line); background:#0c1326; color: var(--ink); transition: all .18s; }
+  button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); box-shadow:0 0 16px -6px var(--cyan); }
   button.primary { background: linear-gradient(90deg, rgba(53,224,255,.16), rgba(255,70,110,.16)); border-color: var(--cyan); color:#eef4fc; }
   button:disabled { opacity:.35; cursor:not-allowed; }
-  button:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
-  .count { margin-left:auto; font-family: var(--mono); font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; }
-  .foot { margin-top: 26px; font-size: 12px; color: var(--dim); text-align:center; font-family: var(--mono); }
-  @media (prefers-reduced-motion: reduce) { * { animation:none!important; transition:none!important; } }
+  button:focus-visible { outline:2px solid var(--purple); outline-offset:2px; }
+  .count { margin-left:auto; font-family: var(--mono); font-size:13px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .foot { margin-top:24px; font-size:12px; color: var(--dim); text-align:center; font-family: var(--mono); }
+  @media (prefers-reduced-motion: reduce) { .kicker .dot { animation:none; } }
 </style>
 
 <div class="wrap">
   <div class="kicker"><span class="dot"></span>VECTOR · memory corruption</div>
   <h1>スタック<span class="hl">バッファオーバーフロー</span></h1>
-  <p class="sub">境界チェックの無いコピーが、バッファの外——保存された戻り先アドレス——まで書き換え、プログラムの制御を奪う。スタックのメモリが1手ずつどう壊れるかを見る。</p>
+  <p class="sub">入力がバッファの容れ物からあふれ、隣にある「戻り先アドレス」まで塗り替える。プログラムが次にどこへ飛ぶかが、書き換えられる瞬間を見る。</p>
 
   <div class="rail" id="rail" aria-hidden="true"></div>
 
-  <div class="stage">
-    <!-- LEFT: code + input + flow -->
-    <div class="panel">
-      <div class="plabel">vulnerable function</div>
-      <div class="code" id="code"></div>
-
-      <div class="inputrow" style="margin-top:16px">
-        <span class="lbl">input ▸</span> <span id="inlabel" style="color:var(--ink)"></span>
-        <div class="bytes" id="bytes"></div>
-      </div>
-
-      <div class="flow" id="flow"></div>
-    </div>
-
-    <!-- RIGHT: stack -->
-    <div class="panel">
-      <div class="plabel">stack — 高位アドレス ↑ / strcpy は buf から上へ書き込む</div>
-      <div class="stack" id="stack"></div>
-    </div>
-  </div>
+  <div class="scene"><canvas id="c" aria-label="バッファがあふれて戻り先アドレスを上書きするアニメーション"></canvas></div>
 
   <div class="narr">
     <div class="no" id="no"></div>
-    <h2 id="ntitle"></h2>
-    <p id="nbody"></p>
+    <h2 id="title"></h2>
+    <p id="body"></p>
   </div>
 
   <div class="controls">
@@ -145,141 +78,196 @@
     <button id="auto">▶ 自動再生</button>
     <span class="count" id="count"></span>
   </div>
-
-  <div class="foot">VECTOR — 2D interactive · スタックの挙動は実際の x86-64 呼び出し規約の論理に対応</div>
+  <div class="foot">VECTOR — 2D interactive · メモリの並びは x86-64 のスタックフレームに対応</div>
 </div>
 
 <script>
-  const CODE = [
-    ['<span class="kw">void</span> <span class="fn">vuln</span>(<span class="kw">char</span> *input) {', null],
-    ['    <span class="kw">char</span> buf[<span class="str">8</span>];', 'buf'],
-    ['    <span class="fn">strcpy</span>(buf, input);   <span class="warn">// 境界チェック無し</span>', 'copy'],
-    ['    <span class="kw">return</span>;              <span class="cmt">// 戻り先アドレスを RIP に取り出す</span>', 'ret'],
-    ['}', null],
+  const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+  let DPR = Math.min(devicePixelRatio || 1, 2), W, H;
+  const LOGW = 900, LOGH = 440;
+  function resize() {
+    const cw = cv.clientWidth || cv.parentElement.clientWidth;
+    cv.style.height = (cw * LOGH / LOGW) + "px";
+    cv.width = cw * DPR; cv.height = cw * LOGH / LOGW * DPR; W = cv.width; H = cv.height;
+  }
+  const S = () => W / LOGW;
+  function rr(x, y, w, h, r) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+  function neon(c, b) { ctx.shadowColor = c; ctx.shadowBlur = b; }
+  const noG = () => ctx.shadowBlur = 0;
+
+  // phases
+  const P = [
+    { no:"01 / 正常", title:"入力が容れ物に収まる", target:4, mode:"safe", canary:false,
+      body:"buf は 8 個ぶんの容れ物。短い入力はその中に収まり、隣の「戻り先アドレス」は無傷。プログラムは正しい場所（main）へ戻る。" },
+    { no:"02 / あふれる", title:"あふれて戻り先を塗り替える", target:14, mode:"crash", canary:false,
+      body:"長すぎる入力は buf を越え、あふれた分が隣のセル——保存された「戻り先アドレス」——まで塗りつぶす。上向きの矢印（次に飛ぶ先）が main から外れ、無効な番地へ。結果はクラッシュ。" },
+    { no:"03 / 奪取", title:"あふれ方を“仕込む”と乗っ取れる", target:14, mode:"hijack", canary:false,
+      body:"ただ潰すのではなく、あふれる中身を調整して、戻り先アドレスの位置に攻撃者のコード（win）の番地を置く。矢印はそこへ向き直り、プログラムは攻撃者の手の中へ。これが制御奪取。" },
+    { no:"04 / 対策", title:"あふれても“飛ぶ前に”止める", target:10, mode:"guard", canary:true,
+      body:"buf と戻り先の間に見張り（スタックカナリア＝乱数）を置く。あふれると必ず見張りを踏むので、戻る直前に改変を検知して強制終了。矢印は動かせない。" },
   ];
 
-  // each slot: {val, cls}  cls in '', 'written', 'overwrite', 'hijack'
-  const STEPS = [
-    {
-      code: 'copy', danger: false,
-      inlabel: '"AAAA"  (4 bytes)',
-      bytes: [['41','fill'],['41','fill'],['41','fill'],['41','fill']],
-      buf: {val:'41 41 41 41 00 .. ..', cls:'written'},
-      rbp: {val:'(intact)', cls:''}, ret: {val:'→ main+0x2c', cls:''},
-      flow: ['ok', 'RET → ', 'main（正常に呼び出し元へ戻る）'],
-      no:'01 / 正常', title:'まず正しく収まる入力',
-      body:'buf は8バイト。4バイトの入力は buf の中に収まり、隣の <code>saved RBP</code> や <code>return address</code> は無傷。<code>ret</code> は正しい戻り先を取り出し、関数は普通に返る。',
-    },
-    {
-      code: 'copy', danger: false,
-      inlabel: '"AAAAAAAA"  (8 bytes)',
-      bytes: Array(8).fill(['41','fill']),
-      buf: {val:'41 41 41 41 41 41 41 41', cls:'written'},
-      rbp: {val:'(intact)', cls:''}, ret: {val:'→ main+0x2c', cls:''},
-      flow: ['ok', 'RET → ', 'main（まだギリギリ無事）'],
-      no:'02 / 境界', title:'ちょうど buf を満タンにする',
-      body:'8バイトで buf は満杯。まだ隣までは侵していない。ここまでが「境界の内側」。あと1バイトでも増えると、行き先は buf の外になる。',
-    },
-    {
-      code: 'copy', danger: true,
-      inlabel: '"A"×20  (20 bytes)',
-      bytes: Array(20).fill(['41', 'fill']),
-      buf: {val:'41 41 41 41 41 41 41 41', cls:'written'},
-      rbp: {val:'41 41 41 41 41 41 41 41', cls:'overwrite'},
-      ret: {val:'0x0000000041414141', cls:'overwrite'},
-      flow: ['crash', 'RET → ', '0x41414141  ✗ SEGV（無効アドレス）'],
-      no:'03 / 溢れる', title:'buf の外まで書き込まれる',
-      body:'20バイトは buf(8)を溢れ、隣の <code>saved RBP</code>、さらに <code>return address</code> まで <code>0x41</code> で上書きする。境界チェックが無い <code>strcpy</code> は「どこまで書くか」を止められない。<code>ret</code> は壊れた <code>0x41414141</code> へジャンプ → クラッシュ。',
-    },
-    {
-      code: 'ret', danger: true,
-      inlabel: '"B"×16 + &win  (16 pad + 8 addr)',
-      bytes: [...Array(16).fill(['42','pad']), ['a6','addr'],['11','addr'],['40','addr'],['00','addr']],
-      buf: {val:'42 42 42 42 42 42 42 42', cls:'written'},
-      rbp: {val:'42 42 42 42 42 42 42 42', cls:'overwrite'},
-      ret: {val:'0x00000000004011a6', cls:'hijack'},
-      flow: ['pwn', 'RET → ', 'win()  🔓 制御奪取'],
-      no:'04 / 奪取', title:'戻り先を「狙った場所」に書き換える',
-      body:'ゴミで潰すのではなく、<code>return address</code> の位置に <code>win()</code> のアドレス(<code>0x4011a6</code>)を精密に置く。パディング16バイトで buf と saved RBP を埋め、続く8バイトが戻り先になる。<code>ret</code> は攻撃者が選んだ <code>win()</code> へ飛び、シェルが起動する。これが制御フロー奪取。',
-    },
-    {
-      code: 'copy', danger: false, canary: true,
-      inlabel: '"A"×20  (対策あり)',
-      bytes: Array(20).fill(['41','fill']),
-      buf: {val:'41 41 41 41 41 41 41 41', cls:'written'},
-      canary: {val:'41 41 41 41 …  ✗ 改変検出', cls:'overwrite'},
-      rbp: {val:'(到達前に abort)', cls:''}, ret: {val:'(守られた)', cls:''},
-      flow: ['guard', 'RET 前に ', '__stack_chk_fail  🛡 abort'],
-      no:'05 / 対策', title:'直し方：溢れても“戻る前に”止める',
-      body:'buf と saved RBP の間に <code>スタックカナリア</code>(乱数)を置く。オーバーフローは必ずカナリアを踏むので、<code>ret</code> の直前に値の変化を検出して <code>__stack_chk_fail</code> で強制終了する。根本対策は境界チェック(<code>strncpy</code>/<code>snprintf</code>)、加えて ASLR・非実行スタック・カナリアの多層防御。',
-    },
-  ];
+  // layout of cells for a phase
+  function cells(canary) {
+    const a = [];
+    for (let k = 0; k < 8; k++) a.push("buf");
+    if (canary) a.push("canary");
+    a.push("rbp"); a.push("rbp");
+    a.push("ret"); a.push("ret"); a.push("ret");
+    return a;
+  }
 
+  let i = 0, filled = 0, arrow = 0, timer = null, tphase = 0;
   const el = (id) => document.getElementById(id);
-  let i = 0, timer = null;
+  el("rail").innerHTML = P.map(() => '<div class="seg"></div>').join("");
 
-  el('rail').innerHTML = STEPS.map(() => '<div class="seg"></div>').join('');
-
-  function renderCode(active, danger) {
-    el('code').innerHTML = CODE.map(([html, key]) => {
-      const on = key === active || (active === 'copy' && key === 'copy') || (active === 'ret' && key === 'ret')
-        || (active === 'copy' && key === 'buf' && false);
-      const cls = 'ln' + (key && key === active ? ' on' + (danger ? ' danger' : '') : '');
-      return `<span class="${cls}">${html}</span>`;
-    }).join('');
+  function cellColor(region, ph, hot) {
+    if (region === "buf") return "#35e0ff";
+    if (region === "canary") return hot ? "#ff466e" : "#ffc24b";
+    if (ph.mode === "hijack") return region === "ret" ? "#56ffa6" : "#54637f";
+    return "#ff466e"; // crash / overflow
+  }
+  // arrow target index: 0 main / 1 crash / 2 win  (switches when overflow reaches ret)
+  function arrowTarget(ph, reachedRet) {
+    if (ph.mode === "hijack") return reachedRet ? 2 : 0;
+    if (ph.mode === "crash") return reachedRet ? 1 : 0;
+    return 0;
   }
 
-  function slot(name, s, extraCls, tag) {
-    const cls = 'slot ' + (extraCls || '') + ' ' + (s.cls || '');
-    const t = tag ? `<span class="tag ${tag[1]}">${tag[0]}</span>` : '';
-    return `<div class="${cls}">${t}<div class="name">${name}</div><div class="val">${s.val}</div></div>`;
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    const s = S(), ph = P[i], list = cells(ph.canary);
+    const n = list.length;
+    const cw = 40 * s, gap = 5 * s, totalW = n * cw + (n - 1) * gap;
+    const x0 = (W - totalW) / 2, cy = H * 0.62, ch = 46 * s;
+
+    // ease fill + arrow
+    filled += (ph.target - filled) * 0.06;
+    const retStart = 8 + (ph.canary ? 1 : 0) + 2;
+    const reachedRet = filled >= retStart + 0.5;
+    const tgt = arrowTarget(ph, reachedRet);
+    arrow += (tgt - arrow) * 0.12;
+
+    // targets row (main / crash / win)
+    const targets = [
+      { label: "main()", ico: "✓", col: "#35e0ff" },
+      { label: "0x4141…", ico: "💥", col: "#ff466e" },
+      { label: "win()", ico: "🐚", col: "#56ffa6" },
+    ];
+    const ty = H * 0.16, tw = 150 * s;
+    const txs = [W * 0.30, W * 0.5, W * 0.70];
+    ctx.font = `${13 * s}px ${mono()}`; ctx.textAlign = "center";
+    targets.forEach((t, k) => {
+      const active = Math.abs(arrow - k) < 0.5;
+      ctx.globalAlpha = active ? 1 : 0.32;
+      neon(t.col, active ? 18 : 0);
+      ctx.strokeStyle = t.col; ctx.fillStyle = "rgba(6,10,18,.7)"; ctx.lineWidth = 1.5 * s;
+      rr(txs[k] - tw / 2, ty - 16 * s, tw, 32 * s, 8 * s); ctx.fill(); ctx.stroke(); noG();
+      ctx.fillStyle = t.col; ctx.fillText(`${t.ico} ${t.label}`, txs[k], ty + 4 * s);
+    });
+    ctx.globalAlpha = 1;
+
+    // control-flow arrow from ret group up to the (eased) target
+    const retCx = x0 + (retStart + 1.5) * (cw + gap);
+    const ax = txs[0] + (arrow) * ( (txs[1]-txs[0]) ); // approximate along 0..2 using segment widths
+    const axInterp = (a) => { const k = Math.max(0, Math.min(2, a)); const lo = Math.floor(k), hi = Math.min(2, lo+1); return txs[lo] + (txs[hi]-txs[lo])*(k-lo); };
+    const headX = axInterp(arrow);
+    const arColT = targets[Math.round(arrow)].col;
+    ctx.strokeStyle = arColT; ctx.lineWidth = 2.4 * s; neon(arColT, 12);
+    ctx.beginPath();
+    ctx.moveTo(retCx, cy - 6 * s);
+    ctx.bezierCurveTo(retCx, cy - 60 * s, headX, ty + 90 * s, headX, ty + 22 * s);
+    ctx.stroke();
+    // arrowhead
+    ctx.beginPath(); ctx.moveTo(headX, ty + 16 * s); ctx.lineTo(headX - 6 * s, ty + 26 * s); ctx.lineTo(headX + 6 * s, ty + 26 * s); ctx.closePath(); ctx.fillStyle = arColT; ctx.fill(); noG();
+    // "RET →" label
+    ctx.fillStyle = "#75879f"; ctx.font = `${11 * s}px ${mono()}`; ctx.textAlign = "left";
+    ctx.fillText("ret ▸ 次に飛ぶ先", retCx + 8 * s, cy - 30 * s);
+
+    // region brackets/labels under cells
+    function regionSpan(name) { let a = -1, b = -1; list.forEach((r, k) => { if (r === name) { if (a < 0) a = k; b = k; } }); return [a, b]; }
+    const labels = [["buf", "buf[8]", "#35e0ff"], ["ret", "return address", "#ffc24b"]];
+    if (ph.canary) labels.push(["canary", "canary", "#ffc24b"]);
+
+    // cells
+    for (let k = 0; k < n; k++) {
+      const x = x0 + k * (cw + gap), region = list[k];
+      const isFilled = k < Math.floor(filled);
+      const partial = k === Math.floor(filled) ? (filled - Math.floor(filled)) : 0;
+      const overwritten = isFilled && region !== "buf";
+      const hotCanary = region === "canary" && (isFilled || partial > 0);
+      // base cell
+      ctx.lineWidth = 1.3 * s;
+      ctx.strokeStyle = region === "ret" ? "rgba(255,194,75,.55)" : (region === "buf" ? "rgba(53,224,255,.5)" : "rgba(120,150,200,.3)");
+      ctx.fillStyle = "rgba(8,14,26,.7)";
+      rr(x, cy, cw, ch, 6 * s); ctx.fill(); ctx.stroke();
+      // fill
+      if (isFilled || partial > 0) {
+        const col = cellColor(region, ph, hotCanary);
+        ctx.globalAlpha = isFilled ? 1 : partial;
+        neon(col, overwritten || hotCanary ? 16 : 8); ctx.fillStyle = col;
+        rr(x + 3 * s, cy + 3 * s, cw - 6 * s, ch - 6 * s, 4 * s); ctx.fill(); noG();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    // region labels
+    ctx.textAlign = "center"; ctx.font = `${11 * s}px ${mono()}`;
+    labels.forEach(([name, text, col]) => {
+      const [a, b] = regionSpan(name); if (a < 0) return;
+      const xa = x0 + a * (cw + gap), xb = x0 + b * (cw + gap) + cw;
+      ctx.strokeStyle = col + "88"; ctx.lineWidth = 1 * s;
+      ctx.beginPath(); ctx.moveTo(xa, cy + ch + 8 * s); ctx.lineTo(xb, cy + ch + 8 * s); ctx.stroke();
+      ctx.fillStyle = col; ctx.fillText(text, (xa + xb) / 2, cy + ch + 24 * s);
+    });
+
+    // incoming stream (motion): blocks sliding toward the fill front
+    const front = x0 + Math.floor(filled) * (cw + gap);
+    if (filled < ph.target - 0.3) {
+      for (let b = 1; b <= 3; b++) {
+        const bx = front - b * (cw + gap) * 1.3 - ((Date.now() / 6) % (cw + gap));
+        if (bx < x0 - cw) continue;
+        ctx.globalAlpha = 0.5 / b; ctx.fillStyle = "#35e0ff"; neon("#35e0ff", 10);
+        rr(bx, cy + 8 * s, cw - 6 * s, ch - 16 * s, 4 * s); ctx.fill(); noG();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // guard shield flash
+    if (ph.mode === "guard" && filled > 8.5) {
+      ctx.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(Date.now() / 200));
+      ctx.font = `${20 * s}px ${mono()}`; ctx.fillStyle = "#ffc24b"; ctx.textAlign = "center";
+      ctx.fillText("🛡 stack smashing detected → abort", W / 2, cy - 70 * s);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.textAlign = "left";
+    requestAnimationFrame(frame);
   }
+  function mono() { return "ui-monospace, monospace"; }
 
   function render() {
-    const s = STEPS[i];
-    renderCode(s.code, s.danger);
-
-    el('inlabel').textContent = s.inlabel;
-    el('bytes').innerHTML = s.bytes.slice(0, 28).map(([h, c]) => `<span class="byte ${c}">${h}</span>`).join('')
-      + (s.bytes.length > 28 ? '<span class="byte">…</span>' : '');
-
-    const rows = [];
-    rows.push(slot('return address  (saved RIP)', s.ret, s.ret.cls === 'hijack' ? 'hijack' : (s.ret.cls === 'overwrite' ? 'overwrite' : ''), ['RET', 'tag-ret']));
-    rows.push(slot('saved RBP', s.rbp, ''));
-    if (s.canary) rows.push(slot('stack canary  (乱数)', s.canary, 'canary'));
-    rows.push(slot('buf[8]', s.buf, 'buf'));
-    el('stack').innerHTML = rows.join('');
-
-    const [fc, a, b] = s.flow;
-    el('flow').className = 'flow ' + fc;
-    el('flow').innerHTML = `${a}<b>${b}</b>`;
-
-    el('no').textContent = s.no;
-    el('ntitle').textContent = s.title;
-    el('nbody').innerHTML = s.body;
-
-    [...el('rail').children].forEach((seg, k) => seg.className = 'seg' + (k < i ? ' done' : k === i ? ' active' : ''));
-    el('count').textContent = `${String(i + 1).padStart(2, '0')} / ${String(STEPS.length).padStart(2, '0')}`;
-    el('prev').disabled = i === 0;
-    el('next').disabled = i === STEPS.length - 1;
+    filled = 0; // re-animate the fill on each phase
+    const ph = P[i];
+    el("no").textContent = ph.no; el("title").textContent = ph.title; el("body").textContent = ph.body;
+    [...el("rail").children].forEach((sg, k) => sg.className = "seg" + (k < i ? " done" : k === i ? " active" : ""));
+    el("count").textContent = `${String(i + 1).padStart(2, "0")} / ${String(P.length).padStart(2, "0")}`;
+    el("prev").disabled = i === 0; el("next").disabled = i === P.length - 1;
   }
-
-  function go(n) { i = Math.max(0, Math.min(STEPS.length - 1, n)); render(); }
-  function stop() { if (timer) { clearInterval(timer); timer = null; el('auto').textContent = '▶ 自動再生'; } }
-  el('next').onclick = () => { stop(); go(i + 1); };
-  el('prev').onclick = () => { stop(); go(i - 1); };
-  el('auto').onclick = () => {
+  function go(n) { i = Math.max(0, Math.min(P.length - 1, n)); render(); }
+  function stop() { if (timer) { clearInterval(timer); timer = null; el("auto").textContent = "▶ 自動再生"; } }
+  el("next").onclick = () => { stop(); go(i + 1); };
+  el("prev").onclick = () => { stop(); go(i - 1); };
+  el("auto").onclick = () => {
     if (timer) return stop();
-    if (i === STEPS.length - 1) go(0);
-    el('auto').textContent = '⏸ 停止';
-    timer = setInterval(() => { if (i >= STEPS.length - 1) return stop(); go(i + 1); }, 3800);
+    if (i === P.length - 1) go(0);
+    el("auto").textContent = "⏸ 停止";
+    timer = setInterval(() => { if (i >= P.length - 1) return stop(); go(i + 1); }, 4200);
   };
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') { stop(); go(i + 1); }
-    if (e.key === 'ArrowLeft') { stop(); go(i - 1); }
-  });
+  document.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") { stop(); go(i + 1); } if (e.key === "ArrowLeft") { stop(); go(i - 1); } });
 
-  render();
+  new ResizeObserver(resize).observe(cv.parentElement);
+  resize(); render(); requestAnimationFrame(frame);
 </script>
 
 </body>
